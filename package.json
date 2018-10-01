@@ -14,7 +14,7 @@
     "eslint-plugin-no-unsanitized": "^3.0.2"
   },
   "scripts": {
-    "lint": "eslint **/*.js",
+    "lint": "eslint *.js",
     "build": "node build.js",
     "test": "web-ext lint"
   },
