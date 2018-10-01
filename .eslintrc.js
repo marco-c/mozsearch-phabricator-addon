@@ -1,6 +1,6 @@
 module.exports = {
     "globals": {
-        "waitIdle": true
+        "tippy": true
     },
     "env": {
         "es6": true,

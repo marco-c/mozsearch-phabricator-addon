@@ -8,10 +8,10 @@ tippy.disableAnimations();
 tippy.setDefaults({
   size: 'small',
   interactive: true,
-	placement: 'bottom',
-	distance: 0,
-	theme: 'light',
-	trigger: 'click',
+  placement: 'bottom',
+  distance: 0,
+  theme: 'light',
+  trigger: 'click',
 });
 
 let searchfoxDataMap = {};
@@ -78,9 +78,9 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
 
   links.push(`<a href="https://searchfox.org/mozilla-central/search?q=${encodeURIComponent(searchfoxElem.textContent)}&redirect=false" target="_blank">Search for the substring <strong>${searchfoxElem.textContent}</strong></a>`);
 
-	tippy(elem, {
+  tippy(elem, {
     content: links.join('<br>'),
-	});
+  });
 
   if (!dataIDMap.has(dataID)) {
     dataIDMap.set(dataID, [])
@@ -108,8 +108,6 @@ function getAllLines(block) {
 async function injectStuff(block) {
   const path = block.querySelector('h1.differential-file-icon-header').textContent;
 
-  console.log(`injectStuff for ${path}`);
-
   let searchfoxData = await getSearchfox(path);
   let searchfoxDoc = searchfoxData['doc'];
   let searchfoxAnalysisData = searchfoxData['analysis_data'];
@@ -130,7 +128,6 @@ async function injectStuff(block) {
     if (codeContainer.classList.length != 0) {
       codeContainer = codeContainer.nextSibling;
     }
-    if (!codeContainer) console.log(phabLineNumber);
 
     // Try with the corresponding line number first, otherwise try to look at any line from mozsearch
     // (lines might not correspond if they are on different revisions).
