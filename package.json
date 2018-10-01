@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Extension that integrates mozsearch/Searchfox capabilities into Phabricator.",
   "dependencies": {
+    "tippy.js": "^3.0.3",
     "web-ext": "^2.9.1"
   },
   "peerDependencies": {
