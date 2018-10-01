@@ -6,7 +6,8 @@ const archiver = require('archiver');
 
 const includeFiles = [
   'tippy.all.min.js', 'tippy-light.css',
-  'phabricator.js'
+  'manifest.json', 'mozsearch-phabricator.png',
+  'phabricator.js',
 ];
 const zipName = './searchfox-phabricator.zip';
 fs.readFile('manifest.json', 'utf8', function(err, data) {
