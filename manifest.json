@@ -1,0 +1,22 @@
+{
+  "author": "Marco Castelluccio",
+  "manifest_version": 2,
+  "name": "Searchfox in Phabricator",
+  "version": "0.1.0",
+  "icons": {
+    "256": "mozsearch-phabricator.png"
+  },
+  "description": "Extension that integrates mozsearch/Searchfox capabilities into Phabricator.",
+  "content_scripts": [
+    {
+      "matches": ["*://phabricator.services.mozilla.com/D*"],
+      "js": ["tippy.all.min.js", "phabricator.js"],
+      "css": ["tippy-light.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "https://searchfox.org/mozilla-central/*"
+  ],
+  "homepage_url": "https://github.com/marco-c/mozsearch-phabricator-addon"
+}
