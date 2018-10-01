@@ -5,7 +5,7 @@ const https = require('https');
 const archiver = require('archiver');
 
 const includeFiles = [
-  'tippy.all.min.js', 'tippy-light.css',
+  'tippy.all.js', 'tippy-light.css',
   'manifest.json', 'mozsearch-phabricator.png',
   'phabricator.js',
 ];

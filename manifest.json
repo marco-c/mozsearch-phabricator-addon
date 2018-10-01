@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["*://phabricator.services.mozilla.com/D*"],
-      "js": ["tippy.all.min.js", "phabricator.js"],
+      "js": ["tippy.all.js", "phabricator.js"],
       "css": ["tippy-light.css"],
       "run_at": "document_idle"
     }
