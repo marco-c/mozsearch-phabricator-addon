@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "Extension that integrates mozsearch/Searchfox capabilities into Phabricator.",
   "dependencies": {
-    "web-ext": "^2.6.0"
+    "web-ext": "^2.9.1"
   },
   "peerDependencies": {
     "eslint": ">=0.8.0"
   },
   "devDependencies": {
     "eslint-plugin-mozilla": "^0.9.0",
-    "eslint-plugin-no-unsanitized": "^3.0.0"
+    "eslint-plugin-no-unsanitized": "^3.0.2"
   },
   "scripts": {
     "lint": "eslint **/*.js",
