@@ -14,17 +14,40 @@ tippy.setDefaults({
   trigger: 'click',
 });
 
-let searchfoxDataMap = {};
-
 function idle() {
   return new Promise(resolve => requestIdleCallback(resolve));
 }
 
+let repository;
+function getRepository() {
+  if (!repository) {
+    let properties = document.body.querySelectorAll('.phui-property-list-key');
+    for (let property of properties) {
+      if (property.textContent.startsWith('Repository')) {
+        let phabRepository = property.nextSibling.textContent;
+        if (phabRepository.startsWith('rNSS')) {
+          repository = 'nss';
+        } else if (phabRepository.startsWith('rCOMMCENTRAL')) {
+          repository = 'comm-central';
+        }
+      }
+    }
+
+    if (!repository) {
+      // Default to mozilla-central if we were not able to detect the repository.
+      repository = 'mozilla-central';
+    }
+  }
+
+  return repository;
+}
+
+let searchfoxDataMap = {};
 async function getSearchfox(path) {
   if (!searchfoxDataMap.hasOwnProperty(path)) {
     // We can't use the actual revision, as searchfox doesn't have ANALYSIS_DATA on pages
     // in the format `https://searchfox.org/mozilla-central/rev/${parentRevision}/${path}`.
-    let response = await fetch(`https://searchfox.org/mozilla-central/source/${path}`);
+    let response = await fetch(`https://searchfox.org/${getRepository()}/source/${path}`);
     let content = await response.text();
 
     let parser = new DOMParser();
