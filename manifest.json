@@ -16,7 +16,7 @@
     }
   ],
   "permissions": [
-    "https://searchfox.org/mozilla-central/*"
+    "https://searchfox.org/*"
   ],
   "homepage_url": "https://github.com/marco-c/mozsearch-phabricator-addon"
 }
