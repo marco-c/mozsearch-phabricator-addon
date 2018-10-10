@@ -60,19 +60,36 @@ async function getSearchfox(path) {
   return searchfoxDataMap[path];
 }
 
-function searchInSearchfox(elem, searchfoxLine) {
-  for (let searchfoxElem of searchfoxLine.children) {
-    let dataID = searchfoxElem.getAttribute('data-id');
-    if (!dataID) {
-      continue
-    }
+let searchfoxPathMap = new Map();
 
-    if (elem.textContent == searchfoxElem.textContent) {
-      return searchfoxElem;
+function searchInSearchfox(path, searchfoxDoc) {
+  let searchfoxElemMap = searchfoxPathMap.get(path);
+  if (searchfoxElemMap) {
+    return searchfoxElemMap;
+  }
+
+  searchfoxElemMap = new Map();
+  searchfoxPathMap.set(path, searchfoxElemMap);
+
+  let lineNumber = 1;
+  while (true) {
+    let searchfoxLine = searchfoxDoc.getElementById(`line-${lineNumber}`);
+    if (!searchfoxLine) {
+      break;
+    }
+    lineNumber++;
+
+    for (let searchfoxElem of searchfoxLine.children) {
+      let dataID = searchfoxElem.getAttribute('data-id');
+      if (!dataID) {
+        continue
+      }
+
+      searchfoxElemMap.set(searchfoxElem.textContent, searchfoxElem);
     }
   }
 
-  return null;
+  return searchfoxElemMap;
 }
 
 // Used to highlight things.
@@ -135,6 +152,8 @@ async function injectStuff(block) {
   let searchfoxDoc = searchfoxData['doc'];
   let searchfoxAnalysisData = searchfoxData['analysis_data'];
 
+  let searchfoxElemMap = searchInSearchfox(path, searchfoxDoc);
+
   for (let line of getAllLines(block)) {
     await idle();
 
@@ -152,29 +171,11 @@ async function injectStuff(block) {
       codeContainer = codeContainer.nextSibling;
     }
 
-    // Try with the corresponding line number first, otherwise try to look at any line from mozsearch
-    // (lines might not correspond if they are on different revisions).
+    // Try to look at any line from mozsearch, as lines might not correspond if they are on different revisions.
+    // TODO: Look at corresponding line first (maybe more likely not to pick a wrong element with the same name) by
+    // adding a second searchfoxElemMap mapping line numbers to elements.
     for (let elem of codeContainer.children) {
-      let lineNumber = phabLineNumber;
-
-      let searchfoxElem;
-      let searchfoxLine = searchfoxDoc.getElementById(`line-${lineNumber}`);
-      if (!searchfoxLine) {
-        lineNumber = 1;
-      } else {
-        searchfoxElem = searchInSearchfox(elem, searchfoxLine);
-        lineNumber = 1;
-      }
-
-      while (!searchfoxElem) {
-        searchfoxLine = searchfoxDoc.getElementById(`line-${lineNumber}`);
-        if (!searchfoxLine) {
-          break;
-        }
-        lineNumber++;
-
-        searchfoxElem = searchInSearchfox(elem, searchfoxLine);
-      }
+      let searchfoxElem = searchfoxElemMap.get(elem.textContent);
 
       if (searchfoxElem) {
         addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData);
