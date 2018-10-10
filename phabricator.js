@@ -154,8 +154,12 @@ async function injectStuff(block) {
 
   let searchfoxElemMap = searchInSearchfox(path, searchfoxDoc);
 
+  let deadline = await idle();
+
   for (let line of getAllLines(block)) {
-    await idle();
+    if (deadline.timeRemaining() <= 1) {
+      deadline = await idle();
+    }
 
     let phabLineNumber = parseInt(line.textContent);
     if (isNaN(phabLineNumber)) {
@@ -187,17 +191,12 @@ async function injectStuff(block) {
 }
 
 function injectCodeSearch() {
-  async function callInjectStuff(block) {
-    await idle();
-    await injectStuff(block);
-  }
-
   document.querySelectorAll('div[data-sigil=differential-changeset]').forEach(block => {
-    let timeoutID = setTimeout(() => callInjectStuff(block), 3000);
+    let timeoutID = setTimeout(() => injectStuff(block), 3000);
 
     let observer = new MutationObserver(() => {
       clearTimeout(timeoutID);
-      callInjectStuff(block);
+      injectStuff(block);
     });
     observer.observe(block, { childList: true, subtree: true });
   });
