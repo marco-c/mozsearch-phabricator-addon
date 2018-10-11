@@ -183,8 +183,6 @@ async function injectStuff(block) {
     }
 
     // Try to look at any line from mozsearch, as lines might not correspond if they are on different revisions.
-    // TODO: Look at corresponding line first (maybe more likely not to pick a wrong element with the same name) by
-    // adding a second searchfoxElemMap mapping line numbers to elements.
     for (let elem of codeContainer.children) {
       let searchfoxElem = searchfoxElemMap.get(elem.textContent);
 
@@ -192,8 +190,6 @@ async function injectStuff(block) {
         addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData);
       }
     }
-
-    // XXX: Add blame information on the left.
   }
 }
 
