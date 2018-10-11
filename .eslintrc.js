@@ -31,6 +31,12 @@ module.exports = {
             {
                 "allow": ["error"]
             }
-        ]    
+        ],
+        "no-constant-condition": [
+            "error",
+            {
+                "checkLoops": false
+            }
+        ] 
     }
 };
