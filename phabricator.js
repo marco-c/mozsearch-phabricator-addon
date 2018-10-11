@@ -145,6 +145,8 @@ function getAllLines(block) {
   return block.querySelectorAll('table.differential-diff tbody tr th');
 }
 
+let parsedLines = new Set();
+
 async function injectStuff(block) {
   const path = block.querySelector('h1.differential-file-icon-header').textContent;
 
@@ -157,6 +159,11 @@ async function injectStuff(block) {
   let deadline = await idle();
 
   for (let line of getAllLines(block)) {
+    if (parsedLines.has(line)) {
+      continue;
+    }
+    parsedLines.add(line);
+
     if (deadline.timeRemaining() <= 1) {
       deadline = await idle();
     }
