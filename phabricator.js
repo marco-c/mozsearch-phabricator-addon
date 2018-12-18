@@ -80,8 +80,8 @@ function searchInSearchfox(path, searchfoxDoc) {
     lineNumber++;
 
     for (let searchfoxElem of searchfoxLine.children) {
-      let dataID = searchfoxElem.getAttribute('data-id');
-      if (!dataID) {
+      let dataSymbols = searchfoxElem.getAttribute('data-symbols');
+      if (!dataSymbols) {
         continue
       }
 
@@ -98,7 +98,7 @@ let dataIDMap = new Map();
 function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
   let links = [];
 
-  let dataID = searchfoxElem.getAttribute('data-id');
+  let dataSymbols = searchfoxElem.getAttribute('data-symbols');
   let index = searchfoxElem.getAttribute('data-i');
   if (index) {
     let [jumps, searches] = searchfoxAnalysisData[index];
@@ -122,21 +122,32 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
     content: links.join('<br>'),
   });
 
-  if (!dataIDMap.has(dataID)) {
-    dataIDMap.set(dataID, [])
+  let visibleText = searchfoxElem.textContent;
+  if (!dataIDMap.has(visibleText)) {
+    dataIDMap.set(visibleText, new Map());
   }
-  let dataIDArray = dataIDMap.get(dataID);
-  dataIDArray.push(elem);
+  let visibleTextMap = dataIDMap.get(visibleText);
+  for (let symbol of dataSymbols.split(",")) {
+    if (!visibleTextMap.has(symbol)) {
+      visibleTextMap.set(symbol, [])
+    }
+    let elemList = visibleTextMap.get(symbol);
+    elemList.push(elem);
+  }
 
   elem.onmouseover = function() {
-    for (let e of dataIDArray) {
-      e.style.backgroundColor = "yellow";
-      e.style.cursor = "pointer";
+    for (let symbol of dataSymbols.split(",")) {
+      for (let e of visibleTextMap.get(symbol)) {
+        e.style.backgroundColor = "yellow";
+        e.style.cursor = "pointer";
+      }
     }
   };
   elem.onmouseout = function() {
-    for (let e of dataIDArray) {
-      e.style.backgroundColor = "";
+    for (let symbol of dataSymbols.split(",")) {
+      for (let e of visibleTextMap.get(symbol)) {
+        e.style.backgroundColor = "";
+      }
     }
   };
 }
