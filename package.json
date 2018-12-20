@@ -1,6 +1,6 @@
 {
   "name": "mozsearch-phabricator",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Extension that integrates mozsearch/Searchfox capabilities into Phabricator.",
   "dependencies": {
     "tippy.js": "^3.0.3",
