@@ -153,10 +153,43 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
 }
 
 function getAllLines(block) {
-  return block.querySelectorAll('table.differential-diff tbody tr th');
+  return block.querySelectorAll('table.differential-diff tbody tr td.n');
 }
 
 let parsedLines = new Set();
+
+// Yields objects with start and end offsets, which define ASCII words
+// in the given text, from last to first.
+function* tokenOffsets(text) {
+  function charCanStartToken(ch) {
+    return (ch >= 'A' && ch <= 'Z') ||
+           (ch >= 'a' && ch <= 'z');
+  }
+
+  function charInToken(ch) {
+    return charCanStartToken(ch) ||
+           (ch >= '0' && ch <= '9');
+  }
+
+  let tokenEnd = null;
+  for (let i = text.length - 1; i >= 0; i--) {
+    let inToken = charInToken(text[i]);
+    if (inToken && tokenEnd == null) {
+      tokenEnd = i;
+    } else if (!inToken && tokenEnd != null) {
+      if (charCanStartToken(text[i + 1])) {
+        yield { start: i + 1, end: tokenEnd + 1 };
+      }
+      tokenEnd = null;
+    }
+  }
+  if (tokenEnd != null) {
+    if (charCanStartToken(0)) {
+      yield { start: 0, end: tokenEnd + 1 };
+    }
+    tokenEnd = null;
+  }
+}
 
 async function injectStuff(block) {
   const path = block.querySelector('h1.differential-file-icon-header').textContent;
@@ -179,7 +212,7 @@ async function injectStuff(block) {
       deadline = await idle();
     }
 
-    let phabLineNumber = parseInt(line.textContent);
+    let phabLineNumber = parseInt(line.dataset.n);
     if (isNaN(phabLineNumber)) {
       continue;       
     }
@@ -194,11 +227,25 @@ async function injectStuff(block) {
     }
 
     // Try to look at any line from mozsearch, as lines might not correspond if they are on different revisions.
-    for (let elem of codeContainer.children) {
-      let searchfoxElem = searchfoxElemMap.get(elem.textContent);
+    for (let elem of codeContainer.childNodes) {
+      if (elem.nodeType == Element.TEXT_NODE) {
+        for (let token of tokenOffsets(elem.textContent)) {
+          let range = document.createRange();
+          range.setStart(elem, token.start);
+          range.setEnd(elem, token.end);
+          let searchfoxElem = searchfoxElemMap.get(range.toString());
+          if (searchfoxElem) {
+            let span = document.createElement('span');
+            range.surroundContents(span);
+            addLinksAndHighlight(span, searchfoxElem, searchfoxAnalysisData);
+          }
+        }
+      } else {
+        let searchfoxElem = searchfoxElemMap.get(elem.textContent);
 
-      if (searchfoxElem) {
-        addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData);
+        if (searchfoxElem) {
+          addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData);
+        }
       }
     }
   }
