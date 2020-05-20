@@ -79,7 +79,7 @@ function searchInSearchfox(path, searchfoxDoc) {
     }
     lineNumber++;
 
-    for (let searchfoxElem of searchfoxLine.children) {
+    for (let searchfoxElem of searchfoxLine.querySelector('.source-line').children) {
       let dataSymbols = searchfoxElem.getAttribute('data-symbols');
       if (!dataSymbols) {
         continue
