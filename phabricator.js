@@ -45,7 +45,7 @@ function getRepository() {
 let searchfoxDataMap = {};
 async function getSearchfox(path) {
   if (!searchfoxDataMap.hasOwnProperty(path)) {
-    // We can't use the actual revision, as searchfox doesn't have ANALYSIS_DATA on pages
+    // We can't use the actual revision, as searchfox doesn't have SYM_INFO on pages
     // in the format `https://searchfox.org/mozilla-central/rev/${parentRevision}/${path}`.
     let response = await fetch(`https://searchfox.org/${getRepository()}/source/${path}`);
     let content = await response.text();
@@ -53,7 +53,7 @@ async function getSearchfox(path) {
     let parser = new DOMParser();
     searchfoxDataMap[path] = {
       'doc': parser.parseFromString(content, 'text/html'),
-      'analysis_data': JSON.parse(content.substring(content.indexOf('<script>var ANALYSIS_DATA = ') + '<script>var ANALYSIS_DATA = '.length, content.indexOf(';</script'))),
+      'sym_info': JSON.parse(content.substring(content.indexOf('<script>var SYM_INFO = ') + '<script>var SYM_INFO = '.length, content.indexOf(';</script'))),
     };
   }
 
@@ -95,23 +95,26 @@ function searchInSearchfox(path, searchfoxDoc) {
 // Used to highlight things.
 let dataIDMap = new Map();
 
-function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
+function addLinksAndHighlight(elem, searchfoxElem, searchfoxSymInfo) {
   let links = [];
 
-  let dataSymbols = searchfoxElem.getAttribute('data-symbols');
-  let index = searchfoxElem.getAttribute('data-i');
-  if (index) {
-    let [jumps, searches] = searchfoxAnalysisData[index];
+  let dataSymbols = searchfoxElem.dataset['symbols'].split(',');
+  for (const dataSymbol of dataSymbols) {
+    let {jumps, sym, pretty} = searchfoxSymInfo[dataSymbol] || {};
 
-    for (let i = 0; i < jumps.length; i++) {
-      let sym = jumps[i].sym;
-      let pretty = jumps[i].pretty;
-      links.push(`<a href="https://searchfox.org/mozilla-central/define?q=${encodeURIComponent(sym)}&redirect=false" target="_blank">Go to definition of ${pretty}</a>`);
+    if (jumps?.def) {
+      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.def}" target="_blank">Go to definition of ${pretty}</a>`);
     }
 
-    for (let i = 0; i < searches.length; i++) {
-      let sym = searches[i].sym;
-      let pretty = searches[i].pretty;
+    if (jumps?.decl) {
+      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.decl}" target="_blank">Go to declaration of ${pretty}</a>`);
+    }
+
+    if (jumps?.idl) {
+      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.idl}" target="_blank">Go to IDL of ${pretty}</a>`);
+    }
+
+    if (sym) {
       links.push(`<a href="https://searchfox.org/mozilla-central/search?q=symbol:${encodeURIComponent(sym)}&redirect=false" target="_blank">Search for ${pretty}</a>`);
     }
   }
@@ -127,7 +130,7 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
     dataIDMap.set(visibleText, new Map());
   }
   let visibleTextMap = dataIDMap.get(visibleText);
-  for (let symbol of dataSymbols.split(",")) {
+  for (let symbol of dataSymbols) {
     if (!visibleTextMap.has(symbol)) {
       visibleTextMap.set(symbol, [])
     }
@@ -136,7 +139,7 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
   }
 
   elem.onmouseover = function() {
-    for (let symbol of dataSymbols.split(",")) {
+    for (let symbol of dataSymbols) {
       for (let e of visibleTextMap.get(symbol)) {
         e.style.backgroundColor = "yellow";
         e.style.cursor = "pointer";
@@ -144,7 +147,7 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData) {
     }
   };
   elem.onmouseout = function() {
-    for (let symbol of dataSymbols.split(",")) {
+    for (let symbol of dataSymbols) {
       for (let e of visibleTextMap.get(symbol)) {
         e.style.backgroundColor = "";
       }
@@ -196,7 +199,7 @@ async function injectStuff(block) {
 
   let searchfoxData = await getSearchfox(path);
   let searchfoxDoc = searchfoxData['doc'];
-  let searchfoxAnalysisData = searchfoxData['analysis_data'];
+  let searchfoxSymInfo = searchfoxData['sym_info'];
 
   let searchfoxElemMap = searchInSearchfox(path, searchfoxDoc);
 
@@ -237,14 +240,14 @@ async function injectStuff(block) {
           if (searchfoxElem) {
             let span = document.createElement('span');
             range.surroundContents(span);
-            addLinksAndHighlight(span, searchfoxElem, searchfoxAnalysisData);
+            addLinksAndHighlight(span, searchfoxElem, searchfoxSymInfo);
           }
         }
       } else {
         let searchfoxElem = searchfoxElemMap.get(elem.textContent);
 
         if (searchfoxElem) {
-          addLinksAndHighlight(elem, searchfoxElem, searchfoxAnalysisData);
+          addLinksAndHighlight(elem, searchfoxElem, searchfoxSymInfo);
         }
       }
     }
