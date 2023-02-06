@@ -4,14 +4,17 @@
 
 "use strict";
 
-tippy.disableAnimations();
-tippy.setDefaults({
+tippy.setDefaultProps({
   size: "small",
   interactive: true,
   placement: "bottom",
   distance: 0,
   theme: "light",
   trigger: "click",
+  allowHTML: true,
+  // disable aninamtions
+  duration: 0,
+  delay: 0
 });
 
 function idle() {
