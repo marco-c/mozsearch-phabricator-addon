@@ -2,16 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-'use strict';
+"use strict";
 
 tippy.disableAnimations();
 tippy.setDefaults({
-  size: 'small',
+  size: "small",
   interactive: true,
-  placement: 'bottom',
+  placement: "bottom",
   distance: 0,
-  theme: 'light',
-  trigger: 'click',
+  theme: "light",
+  trigger: "click",
 });
 
 function idle() {
@@ -21,21 +21,21 @@ function idle() {
 let repository;
 function getRepository() {
   if (!repository) {
-    let properties = document.body.querySelectorAll('.phui-property-list-key');
+    let properties = document.body.querySelectorAll(".phui-property-list-key");
     for (let property of properties) {
-      if (property.textContent.startsWith('Repository')) {
+      if (property.textContent.startsWith("Repository")) {
         let phabRepository = property.nextSibling.textContent;
-        if (phabRepository.startsWith('rNSS')) {
-          repository = 'nss';
-        } else if (phabRepository.startsWith('rCOMMCENTRAL')) {
-          repository = 'comm-central';
+        if (phabRepository.startsWith("rNSS")) {
+          repository = "nss";
+        } else if (phabRepository.startsWith("rCOMMCENTRAL")) {
+          repository = "comm-central";
         }
       }
     }
 
     if (!repository) {
       // Default to mozilla-central if we were not able to detect the repository.
-      repository = 'mozilla-central';
+      repository = "mozilla-central";
     }
   }
 
@@ -44,16 +44,24 @@ function getRepository() {
 
 let searchfoxDataMap = {};
 async function getSearchfox(path) {
-  if (!searchfoxDataMap.hasOwnProperty(path)) {
+  if (!Object.hasOwn(searchfoxDataMap, path)) {
     // We can't use the actual revision, as searchfox doesn't have SYM_INFO on pages
     // in the format `https://searchfox.org/mozilla-central/rev/${parentRevision}/${path}`.
-    let response = await fetch(`https://searchfox.org/${getRepository()}/source/${path}`);
+    let response = await fetch(
+      `https://searchfox.org/${getRepository()}/source/${path}`
+    );
     let content = await response.text();
 
     let parser = new DOMParser();
     searchfoxDataMap[path] = {
-      'doc': parser.parseFromString(content, 'text/html'),
-      'sym_info': JSON.parse(content.substring(content.indexOf('<script>var SYM_INFO = ') + '<script>var SYM_INFO = '.length, content.indexOf(';</script'))),
+      doc: parser.parseFromString(content, "text/html"),
+      sym_info: JSON.parse(
+        content.substring(
+          content.indexOf("<script>var SYM_INFO = ") +
+            "<script>var SYM_INFO = ".length,
+          content.indexOf(";</script")
+        )
+      )
     };
   }
 
@@ -79,10 +87,11 @@ function searchInSearchfox(path, searchfoxDoc) {
     }
     lineNumber++;
 
-    for (let searchfoxElem of searchfoxLine.querySelector('.source-line').children) {
-      let dataSymbols = searchfoxElem.getAttribute('data-symbols');
+    for (let searchfoxElem of searchfoxLine.querySelector(".source-line")
+      .children) {
+      let dataSymbols = searchfoxElem.getAttribute("data-symbols");
       if (!dataSymbols) {
-        continue
+        continue;
       }
 
       searchfoxElemMap.set(searchfoxElem.textContent, searchfoxElem);
@@ -98,31 +107,47 @@ let dataIDMap = new Map();
 function addLinksAndHighlight(elem, searchfoxElem, searchfoxSymInfo) {
   let links = [];
 
-  let dataSymbols = searchfoxElem.dataset['symbols'].split(',');
+  let dataSymbols = searchfoxElem.dataset.symbols.split(",");
   for (const dataSymbol of dataSymbols) {
-    let {jumps, sym, pretty} = searchfoxSymInfo[dataSymbol] || {};
+    let { jumps, sym, pretty } = searchfoxSymInfo[dataSymbol] || {};
 
     if (jumps?.def) {
-      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.def}" target="_blank">Go to definition of ${pretty}</a>`);
+      links.push(
+        `<a href="https://searchfox.org/mozilla-central/source/${jumps.def}" target="_blank">Go to definition of ${pretty}</a>`
+      );
     }
 
     if (jumps?.decl) {
-      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.decl}" target="_blank">Go to declaration of ${pretty}</a>`);
+      links.push(
+        `<a href="https://searchfox.org/mozilla-central/source/${jumps.decl}" target="_blank">Go to declaration of ${pretty}</a>`
+      );
     }
 
     if (jumps?.idl) {
-      links.push(`<a href="https://searchfox.org/mozilla-central/source/${jumps.idl}" target="_blank">Go to IDL of ${pretty}</a>`);
+      links.push(
+        `<a href="https://searchfox.org/mozilla-central/source/${jumps.idl}" target="_blank">Go to IDL of ${pretty}</a>`
+      );
     }
 
     if (sym) {
-      links.push(`<a href="https://searchfox.org/mozilla-central/search?q=symbol:${encodeURIComponent(sym)}&redirect=false" target="_blank">Search for ${pretty}</a>`);
+      links.push(
+        `<a href="https://searchfox.org/mozilla-central/search?q=symbol:${encodeURIComponent(
+          sym
+        )}&redirect=false" target="_blank">Search for ${pretty}</a>`
+      );
     }
   }
 
-  links.push(`<a href="https://searchfox.org/mozilla-central/search?q=${encodeURIComponent(searchfoxElem.textContent)}&redirect=false" target="_blank">Search for the substring <strong>${searchfoxElem.textContent}</strong></a>`);
+  links.push(
+    `<a href="https://searchfox.org/mozilla-central/search?q=${encodeURIComponent(
+      searchfoxElem.textContent
+    )}&redirect=false" target="_blank">Search for the substring <strong>${
+      searchfoxElem.textContent
+    }</strong></a>`
+  );
 
   tippy(elem, {
-    content: links.join('<br>'),
+    content: links.join("<br>")
   });
 
   let visibleText = searchfoxElem.textContent;
@@ -132,7 +157,7 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxSymInfo) {
   let visibleTextMap = dataIDMap.get(visibleText);
   for (let symbol of dataSymbols) {
     if (!visibleTextMap.has(symbol)) {
-      visibleTextMap.set(symbol, [])
+      visibleTextMap.set(symbol, []);
     }
     let elemList = visibleTextMap.get(symbol);
     elemList.push(elem);
@@ -156,7 +181,7 @@ function addLinksAndHighlight(elem, searchfoxElem, searchfoxSymInfo) {
 }
 
 function getAllLines(block) {
-  return block.querySelectorAll('table.differential-diff tbody tr td.n');
+  return block.querySelectorAll("table.differential-diff tbody tr td.n");
 }
 
 let parsedLines = new Set();
@@ -165,13 +190,11 @@ let parsedLines = new Set();
 // in the given text, from last to first.
 function* tokenOffsets(text) {
   function charCanStartToken(ch) {
-    return (ch >= 'A' && ch <= 'Z') ||
-           (ch >= 'a' && ch <= 'z');
+    return (ch >= "A" && ch <= "Z") || (ch >= "a" && ch <= "z");
   }
 
   function charInToken(ch) {
-    return charCanStartToken(ch) ||
-           (ch >= '0' && ch <= '9');
+    return charCanStartToken(ch) || (ch >= "0" && ch <= "9");
   }
 
   let tokenEnd = null;
@@ -195,11 +218,12 @@ function* tokenOffsets(text) {
 }
 
 async function injectStuff(block) {
-  const path = block.querySelector('h1.differential-file-icon-header').textContent;
+  const path = block.querySelector("h1.differential-file-icon-header")
+    .textContent;
 
   let searchfoxData = await getSearchfox(path);
-  let searchfoxDoc = searchfoxData['doc'];
-  let searchfoxSymInfo = searchfoxData['sym_info'];
+  let searchfoxDoc = searchfoxData.doc;
+  let searchfoxSymInfo = searchfoxData.sym_info;
 
   let searchfoxElemMap = searchInSearchfox(path, searchfoxDoc);
 
@@ -217,15 +241,15 @@ async function injectStuff(block) {
 
     let phabLineNumber = parseInt(line.dataset.n);
     if (isNaN(phabLineNumber)) {
-      continue;       
+      continue;
     }
 
-    if (line.classList.contains('show-context-line')) {
+    if (line.classList.contains("show-context-line")) {
       continue;
     }
 
     let codeContainer = line.nextSibling;
-    if (codeContainer.classList.length != 0) {
+    if (codeContainer.classList.length) {
       codeContainer = codeContainer.nextSibling;
     }
 
@@ -238,7 +262,7 @@ async function injectStuff(block) {
           range.setEnd(elem, token.end);
           let searchfoxElem = searchfoxElemMap.get(range.toString());
           if (searchfoxElem) {
-            let span = document.createElement('span');
+            let span = document.createElement("span");
             range.surroundContents(span);
             addLinksAndHighlight(span, searchfoxElem, searchfoxSymInfo);
           }
@@ -255,15 +279,17 @@ async function injectStuff(block) {
 }
 
 function injectCodeSearch() {
-  document.querySelectorAll('div[data-sigil=differential-changeset]').forEach(block => {
-    let timeoutID = setTimeout(() => injectStuff(block), 3000);
+  document
+    .querySelectorAll("div[data-sigil=differential-changeset]")
+    .forEach(block => {
+      let timeoutID = setTimeout(() => injectStuff(block), 3000);
 
-    let observer = new MutationObserver(() => {
-      clearTimeout(timeoutID);
-      injectStuff(block);
+      let observer = new MutationObserver(() => {
+        clearTimeout(timeoutID);
+        injectStuff(block);
+      });
+      observer.observe(block, { childList: true, subtree: true });
     });
-    observer.observe(block, { childList: true, subtree: true });
-  });
 }
 
 injectCodeSearch();

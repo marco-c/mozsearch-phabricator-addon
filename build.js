@@ -1,27 +1,33 @@
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const archiver = require('archiver');
+const fs = require("fs");
+const archiver = require("archiver");
 
 const includeFiles = [
-  'tippy.all.js', 'tippy-light.css',
-  'manifest.json', 'mozsearch-phabricator.png',
-  'phabricator.js',
+  "tippy.all.js",
+  "tippy-light.css",
+  "manifest.json",
+  "mozsearch-phabricator.png",
+  "phabricator.js"
 ];
-const zipName = './searchfox-phabricator.zip';
-fs.readFile('manifest.json', 'utf8', function(err, data) {
-  if (err) throw err;
+const zipName = "./searchfox-phabricator.zip";
+fs.readFile("manifest.json", "utf8", function(err, data) {
+  if (err) {
+    throw err;
+  }
   let manObj = JSON.parse(data);
-  fs.readFile('package.json', 'utf8', function(err, data) {
-    if (err) throw err;
+  fs.readFile("package.json", "utf8", function(err, data) {
+    if (err) {
+      throw err;
+    }
     let packObj = JSON.parse(data);
-    if (manObj["version"] != packObj["version"]) {
-      throw "Different versions of manifest.json and package.json";
+    if (manObj.version != packObj.version) {
+      throw new Error("Different versions of manifest.json and package.json");
     }
   });
 });
 
-fs.readdir('.', (e, files) => {
+fs.readdir(".", (e, files) => {
   if (e) {
     throw e;
   }
@@ -31,14 +37,16 @@ fs.readdir('.', (e, files) => {
   makeZip(resultFiles);
 });
 
-function makeZip(list){
+function makeZip(list) {
   const output = fs.createWriteStream(zipName);
 
-  let archive = archiver('zip', {
+  let archive = archiver("zip", {
     zlib: { level: 9 }
   });
 
-  archive.on('error', e => { throw e; });
+  archive.on("error", e => {
+    throw e;
+  });
 
   archive.pipe(output);
 
