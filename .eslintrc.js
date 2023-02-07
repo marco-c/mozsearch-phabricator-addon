@@ -15,7 +15,7 @@ module.exports = {
         "eslint:recommended"
     ],
     "parserOptions": {
-        "ecmaVersion": 8,
+        "ecmaVersion": 2022,
         "ecmaFeatures": {
             "jsx": true
         },
