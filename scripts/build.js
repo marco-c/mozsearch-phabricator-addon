@@ -7,7 +7,7 @@ const includeFiles = [
   "tippy.all.js",
   "tippy-light.css",
   "manifest.json",
-  "mozsearch-phabricator.png",
+  "mozsearch-phabricator.svg",
   "phabricator.js"
 ];
 const zipName = "./searchfox-phabricator.zip";
