@@ -4,7 +4,7 @@
   "name": "Searchfox in Phabricator",
   "version": "0.2.5",
   "icons": {
-    "256": "mozsearch-phabricator.png"
+    "256": "mozsearch-phabricator.svg"
   },
   "description": "Extension that integrates mozsearch/Searchfox capabilities into Phabricator.",
   "content_scripts": [
